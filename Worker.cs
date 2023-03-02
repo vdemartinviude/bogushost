@@ -1,3 +1,4 @@
+using OpenQA.Selenium.Internal;
 using TheRobot;
 using TheRobot.MediatedRequests;
 using TheRobot.WebRequestsParameters;
@@ -19,7 +20,7 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await _robot.Exec3Async(new MediatedNavigationRequest()
+        var result = await _robot.Execute(new MediatedNavigationRequest()
         {
             Parameters = new NavigateRequestParameters()
             {
@@ -27,7 +28,15 @@ public class Worker : BackgroundService
             }
         }, stoppingToken);
 
-        await _robot.Exec3Async(new MediatedQuitDriverRequest(), stoppingToken);
+        await result.Match(async x =>
+        {
+            if (x.SeverityLevel == TheRobot.Responses.SeverityLevel.Critical)
+            {
+                _logger.LogCritical("Oh my god an Critical Error Has occurred");
+                await _robot.Execute(new MediatedQuitDriverRequest(), stoppingToken);
+            }
+            return;
+        }, y => Task.CompletedTask);
 
         _applicationLifetime.StopApplication();
     }
