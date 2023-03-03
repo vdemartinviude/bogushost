@@ -22,10 +22,7 @@ public class Worker : BackgroundService
     {
         var result = await _robot.Execute(new MediatedNavigationRequest()
         {
-            Parameters = new NavigateRequestParameters()
-            {
-                Url = "http://www.uol.com",
-            }
+            Url = "http://www.uol.com",
         }, stoppingToken);
 
         await result.Match(async x =>
